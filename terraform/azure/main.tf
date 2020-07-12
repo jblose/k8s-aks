@@ -24,9 +24,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
   kubernetes_version  = var.kubernetes_version
 
   default_node_pool {
-    name       = "${var.az_service}${var.az_suffix}"
-    node_count = var.node_cnt
-    vm_size    = var.node_sku
+    name                 = "${var.az_service}${var.az_suffix}"
+    node_count           = var.node_cnt
+    vm_size              = var.node_sku
+    orchestrator_version = var.orchestrator_version
   }
 
   service_principal {
