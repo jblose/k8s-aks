@@ -1,9 +1,9 @@
 terraform {
-  required_version = "= 0.12.24"
+  required_version = "= 0.12.28"
 }
 
 provider "azurerm" {
-  version = "=2.0.0"
+  version = "=2.18.0"
   features {}
 }
 
