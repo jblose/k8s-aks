@@ -1,9 +1,9 @@
 terraform {
-  required_version = "= 0.12.28"
+  required_version = "= 0.13.00"
 }
 
 provider "azurerm" {
-  version = "=2.18.0"
+  version = "=2.24.0"
   features {}
 }
 
@@ -28,6 +28,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     node_count           = var.node_cnt
     vm_size              = var.node_sku
     orchestrator_version = var.orchestrator_version
+    max_pods             = 250
   }
 
   service_principal {

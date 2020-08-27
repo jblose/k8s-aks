@@ -1,5 +1,5 @@
 az_service           = "aks"
-kubernetes_version   = "1.16.10"
-orchestrator_version = "1.16.10"
+kubernetes_version   = "1.16.13"
+orchestrator_version = "1.16.13"
 node_sku             = "Standard_B2s"
-node_cnt             = "1"
+node_cnt             = "2"
