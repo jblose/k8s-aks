@@ -1,12 +1,3 @@
-terraform {
-  required_version = "= 0.13.00"
-}
-
-provider "azurerm" {
-  version = "=2.24.0"
-  features {}
-}
-
 resource "azurerm_resource_group" "aks" {
   name     = "rg-${var.az_service}-${var.az_suffix}"
   location = "eastus"

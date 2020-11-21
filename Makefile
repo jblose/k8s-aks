@@ -7,6 +7,14 @@ PROJ_DIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: test test-junitxml all clean dep tf-init checkov install-tflint fmt docs
 
+# Check the system keychain for stored encryption pass
+ifeq ($(UNAME_S),Linux)
+OS := linux
+endif
+ifeq ($(UNAME_S),Darwin)
+OS := darwin
+endif
+
 clean:
 	@rm -rf .terraform/
 	@rm -f checkov.xml
@@ -30,6 +38,9 @@ test-junitxml: dep lint checkov.xml fmt
 
 tf-init:
 	terraform init -backend=false
+
+tf-plan: tf-init dep
+	terraform plan -out "out.plan"
 
 docs:
 	mkdir -p $(PROJ_DIR)docs/
