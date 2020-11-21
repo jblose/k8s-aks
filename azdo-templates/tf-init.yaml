@@ -1,0 +1,9 @@
+parameters:
+  - name: targetEnv
+    default: ""
+
+steps:
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+    displayName: "install terraform $(tfVersion)"
+    inputs:
+      terraformVersion: $(tfVersion)

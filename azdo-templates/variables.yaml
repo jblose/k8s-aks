@@ -1,0 +1,30 @@
+parameters:
+  name: targetEnv
+  default: ""
+
+variables:
+  # - name: tfvars-enc-key
+  #   value: $(tfvars-key)
+  # - name: artifact-enc-key
+  #   value: $(artifact-key)
+
+  # - name: tfEnvironmentServiceNameAzureRM
+  #   value: "<tbd>"
+  # - name: tfBackendStorageAccount
+  #   value: "<tbd>"
+  # - name: tfBackendResourceGroupName
+  #   value: "<tbd>"
+  # - name: tfBackendStorageAccountName
+  #   value: "<tbd>"
+  # - name: tfBackendStorageContainerName
+  #   value: "tf-state"
+  # - name: tfBackendKey
+  #   value: ${{ parameters.targetEnv }}/terraform.tfstate
+  # - name: tfvarsFile
+  #   value: ${{ parameters.targetEnv }}.tfvars
+  # - name: workDir
+  #   value: $(System.DefaultWorkingDirectory)/${{ parameters.targetEnv }}
+  - name: tfVersion
+    value: "0.13.5"
+  - name: vmImage
+    value: "ubuntu-20.04"

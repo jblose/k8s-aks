@@ -1,0 +1,16 @@
+parameters:
+  - name: targetEnv
+    default: ""
+  - name: destroy
+    default: false
+
+stages:
+  - stage: plan
+    jobs:
+      - job: terraform_plan
+        displayName: Terraform Validate and Plan
+        pool:
+          vmImage: $(vmImage)
+        steps:
+          - checkout: self
+          - template: ./tf-init.yaml
