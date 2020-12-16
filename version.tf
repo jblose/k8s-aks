@@ -5,7 +5,12 @@ terraform {
   }
 
   # we provide backend on the CLI and configure via pipeline or env variables. This clears the warnings
-  backend "azurerm" {}
+  backend "azurerm" {
+    resource_group_name  = "rgp-k8s-aks-kata"
+    storage_account_name = "k8sakskata"
+    container_name       = "tf-state"
+    key                  = "terraform.tfstate"
+  }
 }
 
 provider "azurerm" {
