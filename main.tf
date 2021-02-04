@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "aks" {
-  name     = "rg-${var.az_service}-${var.az_suffix}"
+  name     = "rgp-${var.az_service}-${var.az_suffix}"
   location = "eastus"
 
   tags = {
@@ -22,9 +22,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
     max_pods             = 250
   }
 
-  service_principal {
-    client_id     = var.az_client_id
-    client_secret = var.az_client_secret
+  identity {
+    type = "SystemAssigned"
+  }
+
+  linux_profile {
+    admin_username = "azureuser"
+    ssh_key {
+      key_data = file("~/.ssh/id_rsa.pub")
+    }
   }
 
   role_based_access_control {
