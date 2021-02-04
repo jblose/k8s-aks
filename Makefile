@@ -1,69 +1,56 @@
-UNAME_S     := $(shell uname -s)
-TFLINT      := $(shell which tflint)
-CHECKOV_TAG ?= latest
-TFDOCS_TAG  ?= latest
-PATH        := $(PATH):${HOME}/.local/bin
-PROJ_DIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+UNAME_S              := $(shell uname -s)
+TARGET_ENV           ?= $(shell basename `pwd`)
 
-.PHONY: test test-junitxml all clean dep tf-init checkov install-tflint fmt docs
+TARGET_AZ_SUB_NAME   ?= <Azure Subcription>
+BACKEND_AZ_RGP       ?= <Azure Backend RGP>
+BACKEND_AZ_SA_NAME   ?= <Azure Backend Storage Account Name>
+BACKEND_AZ_CONTAINER ?= tf-state
+BACKEND_AZ_STATE_KEY ?= $(TARGET_ENV)/terraform.state
 
 # Check the system keychain for stored encryption pass
 ifeq ($(UNAME_S),Linux)
-OS := linux
 endif
 ifeq ($(UNAME_S),Darwin)
-OS := darwin
+	ENCRYPTION_PASS ?= $(shell security find-generic-password -a "${USER}" -s "$(KEYCHAIN_PREFIX)/$(TARGET_ENV)" -w)
+endif
+# Check keepass for stored encryption pass if not available in OS keychain
+ifeq ($(ENCRYPTION_PASS),)
+	ifneq ($(shell which keepassxc-cli),)
+		ENCRYPTION_PASS := $(shell keepassxc-cli show "$(KEEPASS_DB_PATH)" "$(KEEPASS_ENTRY)" -s -a password)
+	endif
 endif
 
-clean:
-	@rm -rf .terraform/
-	@rm -f checkov.xml
+.PHONY: test all clean az-login-sp az-login az-account-set tf-init encrypt-secrets decrypt-secrets
 
-hooks:
-	@echo "IyEvYmluL3NoCm1ha2UgZG9jcyA+IC9kZXYvbnVsbCAyPiYxCmlmIFsgIiQkKGdpdCBzdGF0dXMgLXMgZG9jcy8gfCB3YyAtbCkiIC1ndCAwIF07IHRoZW4KCWVjaG8gIltQT0xJQ1ldIC0gRG9jdW1lbnRhdGlvbiBkcmlmdCBkZXRlY3RlZC4gUGxlYXNlIHN0YWdlIGRvY3VtZW50YXRpb24gYW5kIHRyeSBhZ2Fpbi4iIDE+JjIKCWV4aXQgMQpmaQo=" | base64 -d > $(PROJ_DIR).git/hooks/pre-commit && chmod +x $(PROJ_DIR).git/hooks/pre-commit
+dep:
+	terraform get -update
 
-install-tflint:
-ifeq ($(TFLINT),)
-	@echo "Installing tflint"
-	@mkdir -p ${HOME}/.local/bin
-	@curl -ss -L "$(shell curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://.+?_$(OS)_amd64.zip")" -o /tmp/tflint.zip && unzip -q -o -d ${HOME}/.local/bin/ /tmp/tflint.zip
-	@echo "Installing azurerm tflint plugin"
-	@mkdir -p ${HOME}/.tflint.d/plugins && curl -ss -L "$(shell curl -Ls https://api.github.com/repos/terraform-linters/tflint-ruleset-azurerm/releases/latest | grep -o -E "https://.+?_$(OS)_amd64.zip")" -o ${HOME}/.tflint.d/plugins/tflint-azure.zip && unzip -q -o -d ${HOME}/.tflint.d/plugins/ ${HOME}/.tflint.d/plugins/tflint-azure.zip
-else
-	@echo "tflint found at $(TFLINT)"
-endif
+az-login:
+	@az login
 
-test: dep lint checkov fmt
-test-junitxml: dep lint checkov.xml fmt
+az-account-set: az-login
+	@wait
+	@az account set -s '$(TARGET_AZ_SUB_NAME)'
 
-tf-init:
-	terraform init -backend=false
+tf-init: dep
+	terraform init -backend-config="resource_group_name=$(BACKEND_AZ_RGP)" -backend-config="storage_account_name=$(BACKEND_AZ_SA_NAME)" -backend-config="container_name=$(BACKEND_AZ_CONTAINER)"  -backend-config="key=$(BACKEND_AZ_STATE_KEY)"
 
 tf-plan: tf-init dep
 	terraform plan -out "out.plan"
 
-docs:
-	mkdir -p $(PROJ_DIR)docs/
-	docker run -v $(PROJ_DIR):/tf quay.io/terraform-docs/terraform-docs markdown table /tf > $(PROJ_DIR)docs/README.md
+ifneq ($(ENCRYPTION_PASS),)
+decrypt-secrets:
+	@openssl enc -d -aes-256-cbc -pass "pass:${ENCRYPTION_PASS}" -in "secrets.tfvars.enc" -out "secrets.tfvars"
 
-dep: tf-init install-tflint
-	docker pull bridgecrew/checkov:$(CHECKOV_TAG)
-	docker pull quay.io/terraform-docs/terraform-docs:$(TFDOCS_TAG)
-	terraform get -update
+encrypt-secrets:
+	@openssl enc -aes-256-cbc -pass "pass:${ENCRYPTION_PASS}" -in "secrets.tfvars" -out "secrets.tfvars.enc"
 
-validate:
-	@cd examples; terraform init -backend=false; terraform validate
+else
+decrypt-secrets:
+	@echo "ENCRYPTION_PASS is not set."
 
-fmt:
-	terraform fmt -recursive -diff -check
+encrypt_secrets:
+	@echo "ENCRYPTION_PASS is not set."
 
-lint:
-	tflint
-
-checkov:
-	docker run -t -v $(PROJ_DIR):/tf bridgecrew/checkov -d /tf
-
-checkov.xml:
-	docker run -t -v $(PROJ_DIR):/tf bridgecrew/checkov -s -d /tf # print results to the screen
-	docker run -v $(PROJ_DIR):/tf bridgecrew/checkov -d /tf -o junitxml > checkov.xml
+endif
 
