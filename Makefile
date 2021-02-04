@@ -1,12 +1,6 @@
 UNAME_S              := $(shell uname -s)
 TARGET_ENV           ?= $(shell basename `pwd`)
 
-TARGET_AZ_SUB_NAME   ?= <Azure Subcription>
-BACKEND_AZ_RGP       ?= <Azure Backend RGP>
-BACKEND_AZ_SA_NAME   ?= <Azure Backend Storage Account Name>
-BACKEND_AZ_CONTAINER ?= tf-state
-BACKEND_AZ_STATE_KEY ?= $(TARGET_ENV)/terraform.state
-
 # Check the system keychain for stored encryption pass
 ifeq ($(UNAME_S),Linux)
 endif
@@ -33,7 +27,7 @@ az-account-set: az-login
 	@az account set -s '$(TARGET_AZ_SUB_NAME)'
 
 tf-init: dep
-	terraform init -backend-config="resource_group_name=$(BACKEND_AZ_RGP)" -backend-config="storage_account_name=$(BACKEND_AZ_SA_NAME)" -backend-config="container_name=$(BACKEND_AZ_CONTAINER)"  -backend-config="key=$(BACKEND_AZ_STATE_KEY)"
+	terraform init
 
 tf-plan: tf-init dep
 	terraform plan -out "out.plan"
