@@ -9,6 +9,11 @@ k8s-kata is a practice and methodology around cloud based Kubernetes PaaS soluti
 ## Usage
 
 TBD
+### Accessing the cluster
+
+```bash
+az aks get-credentials --name <AKS NAME> --resource-group <AKS Resource Group> --subscription <Azure Subscription>
+```
 
 ## Contributing
 
