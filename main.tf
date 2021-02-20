@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "aks" {
-  name     = "rgp-${var.az_service}-${var.az_suffix}"
+  name     = "${var.az_service}-${var.az_suffix}-rgp"
   location = "eastus"
 
   tags = {
@@ -19,7 +19,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     node_count           = var.node_cnt
     vm_size              = var.node_sku
     orchestrator_version = var.orchestrator_version
-    max_pods             = 250
+    max_pods             = var.max_pods
   }
 
   identity {
@@ -32,6 +32,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
       key_data = file("~/.ssh/id_rsa.pub")
     }
   }
+  
+  node_resource_group = "${var.az_service}-${var.az_suffix}-nodepool-rgp"
 
   role_based_access_control {
     enabled = true
