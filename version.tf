@@ -6,10 +6,10 @@ terraform {
 
   # we provide backend on the CLI and configure via pipeline or env variables. This clears the warnings
   backend "azurerm" {
-    resource_group_name  = "rgp-k8s-aks-kata"
-    storage_account_name = "k8sakskata"
+    resource_group_name  = "jblose-iac-rgp"
+    storage_account_name = "jbloseiac"
     container_name       = "tf-state"
-    key                  = "terraform.tfstate"
+    key                  = "k8s-kata-terraform.tfstate"
   }
 }
 
