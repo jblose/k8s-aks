@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 0.13.0"
   required_providers {
     azurerm = "~> 2.48.0"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.0.3"
+    }
   }
 
   # we provide backend on the CLI and configure via pipeline or env variables. This clears the warnings
